@@ -195,18 +195,12 @@ class PtracMod:
                 # convert mod time to equivalent TOF distance; time (s), E (eV)
                 df["d"] = 1000 * t_to_d((df.t - t_offset) / 1e6, df.E)
             # radial dist from TOF axis at source-moderator assembly
-            df["r"] = df.apply(lambda row: np.sqrt(row.x**2 + row.y**2),
-                               axis=1)
-            df["phi"] = df.apply(lambda row: math.atan2(row.y, row.x), axis=1)
+            df["r"] = np.sqrt(df.x**2 + df.y**2)
+            df["phi"] = math.atan2(df.y, df.x)
             # calculate n position at extended distance
-            df["rad2"] = df.apply(
-                lambda row: (row.x + (l_tof / row.w) * row.u) ** 2
-                + (row.y + (l_tof / row.w) * row.v) ** 2,
-                axis=1,
-            )
+            df["rad2"] = (df.x + (l_tof / df.w) * df.u) ** 2 + (df.y + (l_tof / df.w) * df.v) ** 2
             self.data = df
-            df_copy = df.copy()
-            self.data_axial = df_copy.loc[df_copy.rad2 <= rad**2]
+            self.data_axial = df.loc[df.rad2 <= rad**2].copy(deep=True)
             if save == "csv":
                 df.to_csv(
                     Path(self.folder) / (self.key + "-" + self.thick + ".csv")
